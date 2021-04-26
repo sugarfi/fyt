@@ -40,5 +40,14 @@ module Fyt::Stdlib
             args.size >= 1 || Error.error "1 argument is necessary for has_key";
             (ctx.as(Types::FytMap).get_key(args[0]) ? Types::ONE : Types::ZERO).as(Types::FytValue)
         }
+
+        eval.set_var "chars", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
+            (args.size >= 1 && args[0].is_a?(Types::FytString)) || Error.error "invalid argument for chars - must be a string"
+            chars = {} of Types::FytValue => Types::FytValue
+            args[0].as(Types::FytString).value.chars.each_with_index do |c, i|
+                chars[Types::FytNumber.new(i.to_f32).as(Types::FytValue)] = Types::FytString.new("#{c}").as(Types::FytValue)
+            end
+            Types::FytMap.new(chars).as(Types::FytValue)
+        }
     end
 end
