@@ -31,8 +31,14 @@ module Fyt::Stdlib
         }
 
         eval.set_var "ord", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
-            (args.size >= 1 && args[0].is_a?(Types::FytString) && args[0].as(Types::FytString).value.size >= 1) || Error.error "invalid argument for chr - must be a number"
+            (args.size >= 1 && args[0].is_a?(Types::FytString) && args[0].as(Types::FytString).value.size >= 1) || Error.error "invalid argument for ord - must be a string"
             Types::FytNumber.new(args[0].as(Types::FytString).value[0].ord.to_f32).as(Types::FytValue)
+        }
+
+        eval.set_var "has_key", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
+            (ctx && ctx.is_a?(Types::FytMap)) || Error.error "invalid context for has_key - must be a map"
+            args.size >= 1 || Error.error "1 argument is necessary for has_key";
+            (ctx.as(Types::FytMap).get_key(args[0]) ? Types::ONE : Types::ZERO).as(Types::FytValue)
         }
     end
 end
