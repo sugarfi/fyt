@@ -1,0 +1,268 @@
+# creating synth and objects
+my synth = SimpleOsc.new [
+    !env => ADSREnv.new [ !a => 1, !d => 0, !s => 2, !r => 3 ], # maps use [ key => value ]
+    !wave => !Sine # !x is a symbol literal
+]
+
+use_synth synth # state-machine architecture: things like active synth
+                # or smth are global values set by functions
+                # to do live coding, the interpreter could either look at
+                # the current line and then perform some steppign algorithm to
+                # get all state changes and get the state at that line
+                # or have bytecode indexed with line numbers that it can read
+play_note Note.C4
+sleep 1.seconds # crystal like time interface perhaps?
+# or maybe:
+sleep Time.Second * 1
+# or, shortcut:
+sleep Time.new "1s"
+play_note Note.A5
+
+use_synth synth
+play_note Note.C4
+schedule 1.seconds { # note the lack of commas and parentheses in the call
+    play_note Note.A5 # block literal with { code }
+}
+
+my a = 5 # my and our like perl: my is a local variable, our is a global, exported one
+my b = a + 6
+a++ # basic c-like stuff
+++b
+
+my c = &a # use & for reference binding, so that when c changes, a will change, and when a changes, c will change
+
+my a = 5
+{
+    a = 6
+}
+a # 5
+
+our a = 5
+{
+    a = 6
+}
+a # 6
+
+[ 1 2 3 ] # lists are just mappings with the keys set to numbers by default
+my a = [ 1 !a => !b 2 ] # you can mix and match
+a[0] # 1
+a[!a] # !b
+a[1] # 2 - the index was only incremented once, for the numerical value
+my b = [ 1 5 => 6 7 ]
+b[0] # 1
+b[5] # 6
+b[6] # 7 using a numerical index causes the counter to start from there
+
+my a = [ !key => !val ]
+a.key # !val - x.y is shorthand for x[y]
+my b = [ 1 2 3 ]
+b.1 # 2 - this also works with numeric indices, or even other literals
+my c = [ "a" => 5 ]
+c."a" # 5
+
+# destructuring
+my [ a b ] = [ 1, 2 ]
+a # 1
+b # 2
+
+my [ !x => a !y => b ] = [ !x => 1 !y => 2 ]
+a # 1
+b # 2
+
+# you can also mix and match here, same counter rules apply
+
+my [ a !x => b c ] = [ 0 !x => 1 2 ]
+a # 1
+b # 2
+c # 3
+
+my [ a 2 => b ] = [ 0 1 2 ]
+a # 1
+b # 2
+
+my f = { # functions are just block literals, kinda like sub
+    my [ a b ] = @ # arguments stored in a variable like perl
+    a # last expression is automatically evaluated and returned
+    return b # or explicitly
+}
+
+f 1 2 # calling
+f 1 # destructuring error
+
+# booleans
+true
+false
+
+x.if_true { # smalltalk-like if statements
+    "x is true"
+}
+
+x.if_false { "x is false" } # this also works
+
+# if_true and if_false return the value, so chaining works
+x.if_true {
+    "x is true"
+}.if_false {
+    "x is false"
+}
+
+# chaining
+x.if {
+    "x is true"
+}.else {
+    "x is false"
+}
+
+x.ternary { "true" } { "false" } # shorthand, returns the value in the block rather than the value itself
+
+x.switch [ # switch
+    1 => { "one" },
+    2 => { "two" }
+] 
+
+x.while { # why not
+    ...
+    # x re-evaluated at the end of every iteration, taking into account changes made in scope
+    # either make this method magic, or introduce a keyword to inherit scope or smth?
+    # probably not a good idea - wouldn't work too well for constant expressions
+}
+
+# perhaps:
+{
+    ...
+}.while x # and itnroduce some sort of conditional evaluation or smth here
+
+my obj = [
+    !new => {
+        my [ a b ] = @
+        $.a = a # $ represents the current mapping/object/array
+        $.b = b
+        # equivalent to:
+        $[!a] = a
+        $[!b] = b
+        # or:
+        [ $.a $.b ] = @
+    }
+    # the new method is special: $ is set to an empty object in it, and is automatically returned from it
+    # maybe?
+    # or make it manual:
+    !new => {
+        [ $.a $.b ] = @
+        return $
+    }
+
+    !method => {
+        $.a + $.b # $ works in other functions too
+    }
+]
+
+my test = obj.new
+
+# alternative idea: contextual evaluation
+
+my obj = [
+    !new => {
+        [ $.a $.b ] = @
+        return $
+    }
+
+    !method {
+        $.a + $.b
+    }
+]
+
+my test = <{}>obj.new # <{}> means to evaluate in the context of an empty object; this sets $ to {} in the body of the fucntion
+<test>obj.method # calls obj.method in the context of test
+# maybe overly verbose, and a bit confusing, but who knows
+
+# would require rewritign teh synth example as:
+# creating synth and objects
+my synth = <{}>SimpleOsc.new [
+    !env => <{}>ADSREnv.new [ !a => 1, !d => 0, !s => 2, !r => 3 ], # maps use [ key => value ]
+    !wave => !Sine # !x is a symbol literal
+]
+
+# maybe add syntatic sugar for <{}>:
+my synth = $SimpleOsc.new [
+    !env => $ADSREnv.new [ !a => 1, !d => 0, !s => 2, !r => 3 ], # maps use [ key => value ]
+    !wave => !Sine # !x is a symbol literal
+]
+# but not for other contexts:
+<synth>SimpleOsc.foo
+<synth.env>SimpleOsc.bar
+
+# getting worse by the minute lol
+
+# loops:
+[ 1 2 3 ].each {
+    $ # loop block run in the context of the current item?
+}
+
+1..3.each { # syntatic sugar for generating lists
+    ...
+}
+
+{
+    ...
+}.loop # do forever
+
+
+# async / paralellism: green threads, maybe?
+{
+    ...
+}.async.loop # .async returns new block, with new operations that run in the background
+
+# yield keyword / function too maybe
+
+# also: modules
+# you import them with the use keyword
+# which searches the current directory and then path
+# and makes them available in teh global scope ig? kinda like .include
+# not the best idea but the simplest: maybe introduce :: for scope or smth
+
+main.idk:
+use module
+a # 5
+b # error
+
+module.idk:
+our a = 5
+my b = 6
+
+# also, maybe enforce use for samples, so that when distributing a song the interpreter can tell wht samples are needed:
+use sample.mp3 as Sample1
+play_sample Sample1
+# on a computer without sample.mp3, the interpreter will error
+
+# so how could we put together a simple song with this?
+
+my synth1 = $SimpleOsc.new [
+    !wave => !sine
+]
+
+my synth2 = $SimpleOsc.new [
+    !wave => !sawtooth
+]
+
+{
+    [ Note.C4 Note.A4 Note.B5 ].each do { 
+        use_synth synth1 # state machine might not be so great for this, idk
+        play_note $
+        sleep 0.5.seconds
+    }
+}.async.loop
+
+{
+    [ Note.A4 Note.B4 Note.A5 ].each do { 
+        use_synth synth2 # state machine might not be so great for this, idk
+        play_note $
+        sleep 0.5.seconds
+    }
+}.async.loop
+
+{
+    play_sample "bassline.wav"
+}.loop
+
+# ok i lied this isn't really a song lol, chances are it sounds horrible
+# but hey it's something

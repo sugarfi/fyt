@@ -1,0 +1,6 @@
+range = {
+    [ a b ] = @;
+    ?(<%eq a b>if.{ [ a => a ]; } { (+ [ a => a ] (?range.(+ a 1) b)); }).;
+};
+
+?put.(?range.0 50);
