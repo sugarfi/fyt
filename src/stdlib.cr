@@ -24,5 +24,10 @@ module Fyt::Stdlib
             args.size >= 2 || Error.error "2 arguments are necessary for if";
             ctx.eq(Types::ZERO) ? args[1] : args[0]
         }
+
+        eval.set_var "chr", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
+            (args.size >= 1 && args[0].is_a?(Types::FytNumber)) || Error.error "invalid argument for chr - must be a number"
+            Types::FytString.new "#{args[0].value.to_i32.chr}"
+        }
     end
 end
