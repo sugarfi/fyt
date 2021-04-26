@@ -27,7 +27,7 @@ module Fyt::Stdlib
 
         eval.set_var "chr", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
             (args.size >= 1 && args[0].is_a?(Types::FytNumber)) || Error.error "invalid argument for chr - must be a number"
-            Types::FytString.new "#{args[0].value.to_i32.chr}"
+            Types::FytString.new("#{args[0].value.as(Float32).to_i32.chr}").as(Types::FytValue)
         }
     end
 end
