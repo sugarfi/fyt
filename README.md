@@ -131,13 +131,15 @@ any files you want to include there.
 
 ### stdlib
 
-there are 3 functions in the stdlib so far: `put`, which prints all of the arguments, `get`, which reads a string from stdin and
+there are a few functions in the stdlib so far: `put`, which prints all of the arguments, `get`, which reads a string from stdin and
 returns it, and `if`. `if` takes a condition as context, and if it is `0` returns the second argument and if it is anything else
 returns the first. by default both arguments are evaluated before the function is called, so unless you're using it as a simple
 ternary, you should use blocks and call the result. for example:
 ```
 ?(<%eq a b>if.{ "equal"; } { "not equal"; });
 ```
+also now there are `ord`, which takes a number and converts it to an ascii character, `chr`, which takes the first character of a string
+and returns it as a number, and `chars`, which converts a string to a list of one-character strings.
 
 ### objects
 
