@@ -11,6 +11,7 @@ module Fyt::Stdlib
         eval.set_var "$BASED", Types::FytNumber.new(1.0)
         eval.set_var "put", Types::FytRawFunc.new ->(args : Array(Types::FytValue), ctx : Types::FytValue?) {
             print args.map(&.format).join(" ")
+            STDOUT.flush
             v Types::ZERO
         }
 

@@ -3,7 +3,7 @@ require "./eval"
 require "./stdlib"
 
 parser = Fyt::Parser.new ARGV[0]? || "STDIN"
-eval = Fyt::Evaluator.new
+eval = Fyt::Evaluator.new global: true
 Fyt::Stdlib.load_stdlib eval
 
 if file = ARGV[0]?

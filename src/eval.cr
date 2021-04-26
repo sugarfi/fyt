@@ -5,8 +5,14 @@ require "./error"
 module Fyt
     class Evaluator
         getter scope : Hash(String, Types::FytValue) = {} of String => Types::FytValue
+        @parent : Evaluator? = nil
+        @global : Bool
 
-        def initialize(@scope : Hash(String, Types::FytValue) = {} of String => Types::FytValue)
+        def initialize(
+            @scope : Hash(String, Types::FytValue) = {} of String => Types::FytValue, 
+            @parent : Evaluator? = nil, 
+            @global = false
+        )
         end
 
         def eval_node(node : AST::Node)
@@ -57,7 +63,7 @@ module Fyt
 
                 Types::FytMap.new new
             when AST::BlockNode
-                Types::FytBlock.new node.lines, node.export
+                Types::FytBlock.new node.lines, node.export, @global ? {} of String => Types::FytValue : @scope.dup
             when AST::CallNode
                 func = eval_node(node.func).as(Types::FytValue)
                 if node.ctx
@@ -74,7 +80,7 @@ module Fyt
                         real_args[Types::FytNumber.new i.to_f32] = val
                     end
 
-                    eval = Evaluator.new @scope.dup
+                    eval = Evaluator.new func.scope, self
                     eval.set_var "@", Types::FytMap.new(real_args)
                     if ctx
                         eval.set_var "$", ctx
@@ -197,7 +203,7 @@ module Fyt
         end
 
         def get_var(name : String)
-            @scope[name]?
+            @scope[name]? || (@parent && @parent.as(Evaluator).get_var(name)) || nil
         end
 
         def eval(ast : Array(AST::Node))

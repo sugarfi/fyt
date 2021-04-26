@@ -211,8 +211,9 @@ module Fyt::Types
     class FytBlock < FytValue
         getter value : Array(AST::Node)
         getter export : Bool
+        getter scope : Hash(String, FytValue)
 
-        def initialize(@value : Array(AST::Node), @export : Bool)
+        def initialize(@value : Array(AST::Node), @export : Bool, @scope : Hash(String, FytValue))
         end
 
         def format
@@ -229,7 +230,7 @@ module Fyt::Types
 
         def add(other : FytValue)
             other.is_a?(FytBlock) || Error.error "Cannot add block and non-block"
-            FytBlock.new @value + other.value, @export
+            FytBlock.new @value + other.value, @export, @scope.dup
         end
 
         def sub(other : FytValue)
