@@ -177,6 +177,7 @@ the language is not complete. several features are on the roadmap:
 - file i/o
 - setting object properties better maybe
 - full-fledged module system
+- fix syntax errors
 
 ### contributing and license
 
