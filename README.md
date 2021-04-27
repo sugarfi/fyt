@@ -186,7 +186,10 @@ do whatever with the code. credit is not necessary. prs welcome.
 ### bugs
 
 there are a bunch of bugs that i can't remember at the moment. if you find, one submit an issue or email `gender@sugarfi.dev` or smth
-and i might address it.
+and i might address it. few known ones:
+
+- errors suck
+- $ and @ cannot be referenced in the last line of a %ex block
 
 ---
 
