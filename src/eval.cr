@@ -7,6 +7,7 @@ module Fyt
         getter scope : Hash(String, Types::FytValue) = {} of String => Types::FytValue
         @parent : Evaluator? = nil
         @global : Bool
+        @at_ctx_stack = [] of { Types::FytValue?, Types::FytValue? }
 
         def initialize(
             @scope : Hash(String, Types::FytValue) = {} of String => Types::FytValue, 
@@ -80,19 +81,23 @@ module Fyt
                         real_args[Types::FytNumber.new i.to_f32] = val
                     end
 
-                    eval = Evaluator.new func.scope, self
-                    eval.set_var "@", Types::FytMap.new(real_args)
-                    if ctx
-                        eval.set_var "$", ctx
-                    end
-
-                    res = eval.eval func.value
-
                     if func.export
-                        @scope.merge! eval.scope
+                        old_at = get_var "@"
+                        old_ctx = get_var "$"
+                        set_var "@", Types::FytMap.new(real_args)
+                        set_var "$", ctx if ctx
+                        func.value[..-2].each do |node|
+                            eval_node node
+                        end
+                        set_var "@", old_at if old_at
+                        set_var "$", old_ctx if old_ctx
+                        return eval_node(func.value[-1])
+                    else
+                        eval = Evaluator.new func.scope, self
+                        eval.set_var "@", Types::FytMap.new(real_args)
+                        eval.set_var "$", ctx if ctx
+                        return eval.eval func.value
                     end
-
-                    res
                 when Types::FytMap
                     if node.args.size > 1
                         Error.error "Too many arguments for map index."

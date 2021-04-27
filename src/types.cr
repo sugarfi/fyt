@@ -217,7 +217,7 @@ module Fyt::Types
         end
 
         def format
-            "#{@export ? "%e" : ""}<block>"
+            "#{@export ? "%ex" : ""}<block>"
         end
 
         def eq(other : FytValue)
